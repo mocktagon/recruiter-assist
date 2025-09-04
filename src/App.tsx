@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import CreateInterview from "./pages/CreateInterview";
 import ManageInterviews from "./pages/ManageInterviews";
+import InterviewDetails from "./pages/InterviewDetails";
 import FitmentInterviews from "./pages/FitmentInterviews";
 import Candidates from "./pages/Candidates";
 import Analytics from "./pages/Analytics";
@@ -29,6 +30,7 @@ const App = () => (
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/interviews/create" element={<CreateInterview />} />
                 <Route path="/interviews/manage" element={<ManageInterviews />} />
+                <Route path="/interviews/:id" element={<InterviewDetails />} />
                 <Route path="/interviews/fitment" element={<FitmentInterviews />} />
                 <Route path="/candidates" element={<Candidates />} />
                 <Route path="/analytics" element={<Analytics />} />

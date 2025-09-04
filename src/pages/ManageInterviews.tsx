@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter, Plus, Calendar, Users, Clock, Play, Pause, MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
+import { Search, Filter, Plus, Calendar, Users, Clock, Play, Pause, MoreHorizontal, Eye, Edit, Trash2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { StatusBadge, Status } from "@/components/dashboard/StatusBadge";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 // Mock interview data
 const interviews = [
@@ -31,6 +32,7 @@ const interviews = [
     created: "2024-01-15",
     status: "in-progress" as Status,
     candidates: 12,
+    participationRate: 75, // 9 out of 12 have taken the interview
     duration: "45 min",
     voiceType: "Professional Female",
     communications: { email: true, phone: true, sms: false }
@@ -42,6 +44,7 @@ const interviews = [
     created: "2024-01-14",
     status: "completed" as Status,
     candidates: 8,
+    participationRate: 100, // All 8 have completed
     duration: "60 min",
     voiceType: "Professional Male",
     communications: { email: true, phone: false, sms: true }
@@ -53,6 +56,7 @@ const interviews = [
     created: "2024-01-13",
     status: "pending" as Status,
     candidates: 0,
+    participationRate: 0, // No candidates yet
     duration: "30 min",
     voiceType: "Friendly Female",
     communications: { email: true, phone: true, sms: true }
@@ -64,6 +68,7 @@ const interviews = [
     created: "2024-01-12",
     status: "cancelled" as Status,
     candidates: 15,
+    participationRate: 60, // 9 out of 15 before cancellation
     duration: "50 min",
     voiceType: "Professional Male",
     communications: { email: true, phone: false, sms: false }
@@ -74,6 +79,7 @@ export default function ManageInterviews() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const filteredInterviews = interviews.filter(interview => {
     const matchesSearch = interview.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -91,6 +97,17 @@ export default function ManageInterviews() {
     });
   };
 
+  const handleViewDetails = (interviewId: number) => {
+    navigate(`/interviews/${interviewId}`);
+  };
+
+  const handleAddCandidates = (interviewId: number, title: string) => {
+    toast({
+      title: "Add Candidates",
+      description: `Opening candidate upload for "${title}".`,
+    });
+  };
+
   const getTypeColor = (type: string) => {
     switch (type.toLowerCase()) {
       case 'accounting': return 'bg-brand-primary-light text-brand-primary-dark';
@@ -98,6 +115,13 @@ export default function ManageInterviews() {
       case 'consulting': return 'bg-brand-accent-light text-brand-accent-dark';
       default: return 'bg-muted text-foreground-muted';
     }
+  };
+
+  const getParticipationColor = (rate: number) => {
+    if (rate >= 80) return "text-success cursor-pointer hover:underline";
+    if (rate >= 60) return "text-warning cursor-pointer hover:underline";
+    if (rate > 0) return "text-error cursor-pointer hover:underline";
+    return "text-foreground-muted";
   };
 
   return (
@@ -211,6 +235,7 @@ export default function ManageInterviews() {
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Candidates</TableHead>
+                <TableHead>Participation</TableHead>
                 <TableHead>Duration</TableHead>
                 <TableHead>Voice</TableHead>
                 <TableHead>Created</TableHead>
@@ -242,6 +267,14 @@ export default function ManageInterviews() {
                       <span className="font-medium text-foreground">{interview.candidates}</span>
                     </div>
                   </TableCell>
+                  <TableCell>
+                    <span 
+                      className={`font-semibold ${getParticipationColor(interview.participationRate)}`}
+                      onClick={() => interview.participationRate > 0 && handleViewDetails(interview.id)}
+                    >
+                      {interview.participationRate}%
+                    </span>
+                  </TableCell>
                   <TableCell className="text-foreground-muted">
                     {interview.duration}
                   </TableCell>
@@ -261,7 +294,7 @@ export default function ManageInterviews() {
                       <DropdownMenuContent align="end" className="bg-surface border-border">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem
-                          onClick={() => handleAction("viewed", interview.id, interview.title)}
+                          onClick={() => handleViewDetails(interview.id)}
                           className="cursor-pointer"
                         >
                           <Eye className="mr-2 h-4 w-4" />
@@ -273,6 +306,13 @@ export default function ManageInterviews() {
                         >
                           <Edit className="mr-2 h-4 w-4" />
                           Edit Interview
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleAddCandidates(interview.id, interview.title)}
+                          className="cursor-pointer"
+                        >
+                          <UserPlus className="mr-2 h-4 w-4" />
+                          Add Candidates
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         {interview.status === "in-progress" ? (
