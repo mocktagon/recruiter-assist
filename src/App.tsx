@@ -9,8 +9,7 @@ import CreateInterview from "./pages/CreateInterview";
 import ManageInterviews from "./pages/ManageInterviews";
 import InterviewDetails from "./pages/InterviewDetails";
 import FitmentInterviews from "./pages/FitmentInterviews";
-import Candidates from "./pages/Candidates";
-import Analytics from "./pages/Analytics";
+import QuickTour from "./pages/QuickTour";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -32,8 +31,7 @@ const App = () => (
                 <Route path="/interviews/manage" element={<ManageInterviews />} />
                 <Route path="/interviews/:id" element={<InterviewDetails />} />
                 <Route path="/interviews/fitment" element={<FitmentInterviews />} />
-                <Route path="/candidates" element={<Candidates />} />
-                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/quick-tour" element={<QuickTour />} />
                 <Route path="/settings" element={<Settings />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

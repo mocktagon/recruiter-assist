@@ -10,7 +10,8 @@ import {
   ChevronDown,
   Bot,
   Menu,
-  X
+  X,
+  Play
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,8 +30,7 @@ const menuItems = [
       { title: "Fitment Interviews", url: "/interviews/fitment" }
     ]
   },
-  { title: "Candidates", url: "/candidates", icon: Users },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
+  { title: "Quick Tour", url: "/quick-tour", icon: Play },
   { title: "Settings", url: "/settings", icon: Settings }
 ];
 
