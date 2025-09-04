@@ -44,7 +44,7 @@ function ManualCandidateSelection({
 
   const filteredCandidates = interview.candidates.filter((candidate: any) => {
     const matchesName = candidate.name.toLowerCase().includes(candidateFilter.toLowerCase());
-    const matchesStatus = !statusFilter || candidate.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || !statusFilter || candidate.status === statusFilter;
     return matchesName && matchesStatus;
   });
 
@@ -86,7 +86,7 @@ function ManualCandidateSelection({
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 {uniqueStatuses.map((status: string) => (
                   <SelectItem key={status} value={status}>
                     {(status as string).charAt(0).toUpperCase() + (status as string).slice(1).replace("-", " ")}

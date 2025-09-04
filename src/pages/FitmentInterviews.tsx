@@ -140,7 +140,7 @@ export default function FitmentInterviews() {
 
   const filteredCandidatesForSelection = allCandidates.filter(candidate => {
     const matchesName = candidate.name.toLowerCase().includes(candidateFilter.toLowerCase());
-    const matchesInterview = !interviewFilter || candidate.interview === interviewFilter;
+    const matchesInterview = interviewFilter === "all" || !interviewFilter || candidate.interview === interviewFilter;
     return matchesName && matchesInterview;
   });
 
@@ -297,7 +297,7 @@ export default function FitmentInterviews() {
                         <SelectValue placeholder="Filter by interview" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Interviews</SelectItem>
+                        <SelectItem value="all">All Interviews</SelectItem>
                         {uniqueInterviews.map(interview => (
                           <SelectItem key={interview} value={interview}>
                             {interview}
