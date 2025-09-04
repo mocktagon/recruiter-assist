@@ -203,6 +203,8 @@ export default function InterviewDetails() {
   const [isCreateFitmentOpen, setIsCreateFitmentOpen] = useState(false);
   const [jobDescription, setJobDescription] = useState("");
   const [jobDescriptionFile, setJobDescriptionFile] = useState<File | null>(null);
+  const [fitmentInterviewName, setFitmentInterviewName] = useState("");
+  const [fitmentStep, setFitmentStep] = useState<"jd" | "candidates">("jd");
   
   // Main table filters
   const [tableSearchQuery, setTableSearchQuery] = useState("");
@@ -265,20 +267,42 @@ export default function InterviewDetails() {
     setSelectedCandidates(checked ? eligibleForShortlist.map(c => c.id) : []);
   };
 
-  const handleCreateFitmentInterview = () => {
-    if (selectedCandidates.length === 0) {
+  const handleNextToCandidate = () => {
+    if (!jobDescription.trim() && !jobDescriptionFile) {
       toast({
-        title: "No Candidates Selected",
-        description: "Please select at least one candidate to create a fitment interview.",
+        title: "Job Description Required",
+        description: "Please provide a job description or upload a file.",
         variant: "destructive"
       });
       return;
     }
 
-    if (!jobDescription.trim() && !jobDescriptionFile) {
+    if (!fitmentInterviewName.trim()) {
       toast({
-        title: "Job Description Required",
-        description: "Please provide a job description or upload a file.",
+        title: "Fitment Interview Name Required",
+        description: "Please provide a name for this fitment interview.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setFitmentStep("candidates");
+  };
+
+  const handleAutoShortlist = () => {
+    // Auto-select candidates based on transcript analysis (score >= 75%)
+    setSelectedCandidates(eligibleForShortlist.map(c => c.id));
+    toast({
+      title: "Candidates Auto-Shortlisted",
+      description: `${eligibleForShortlist.length} candidates automatically shortlisted based on transcript analysis (score ≥ 75%).`,
+    });
+  };
+
+  const handleCreateFitmentInterview = () => {
+    if (selectedCandidates.length === 0) {
+      toast({
+        title: "No Candidates Selected",
+        description: "Please select at least one candidate to create a fitment interview.",
         variant: "destructive"
       });
       return;
@@ -291,13 +315,15 @@ export default function InterviewDetails() {
 
     toast({
       title: "Fitment Interview Created!",
-      description: `Created fitment interview for ${selectedCandidates.length} candidates: ${selectedNames}`,
+      description: `Created "${fitmentInterviewName}" for ${selectedCandidates.length} candidates: ${selectedNames}`,
     });
 
     setIsCreateFitmentOpen(false);
     setSelectedCandidates([]);
     setJobDescription("");
     setJobDescriptionFile(null);
+    setFitmentInterviewName("");
+    setFitmentStep("jd");
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -351,101 +377,172 @@ export default function InterviewDetails() {
               <DialogHeader>
                 <DialogTitle>Create Fitment Interview</DialogTitle>
                 <DialogDescription>
-                  Select candidates and provide job description for role-specific assessment
+                  {fitmentStep === "jd" 
+                    ? "Upload or add job description first" 
+                    : "Select candidates for role-specific assessment"
+                  }
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <Label className="text-base font-medium">Select Candidates</Label>
-                  
-                  {/* Quick Selection */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium">Shortlisted Candidates (Score ≥ 75%)</Label>
-                      <span className="text-sm text-foreground-muted">{eligibleForShortlist.length} eligible</span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="select-all"
-                          checked={selectedCandidates.length === eligibleForShortlist.length && eligibleForShortlist.length > 0}
-                          onCheckedChange={handleSelectAll}
-                        />
-                        <Label htmlFor="select-all" className="font-medium">
-                          Select All Shortlisted ({eligibleForShortlist.length})
-                        </Label>
-                      </div>
-                      {eligibleForShortlist.map((candidate) => (
-                        <div key={candidate.id} className="flex items-center space-x-2 pl-6">
-                          <Checkbox
-                            id={`candidate-${candidate.id}`}
-                            checked={selectedCandidates.includes(candidate.id)}
-                            onCheckedChange={(checked) => handleCandidateSelect(candidate.id, checked as boolean)}
-                          />
-                          <Label htmlFor={`candidate-${candidate.id}`} className="flex-1">
-                            {candidate.name} ({candidate.score}%)
-                          </Label>
-                        </div>
-                      ))}
+              
+              {fitmentStep === "jd" ? (
+                <div className="space-y-6">
+                  <div>
+                    <Label htmlFor="fitmentName">Fitment Interview Name *</Label>
+                    <Input
+                      id="fitmentName"
+                      placeholder="e.g., Senior Developer Role, Marketing Manager Assessment..."
+                      value={fitmentInterviewName}
+                      onChange={(e) => setFitmentInterviewName(e.target.value)}
+                      className="mt-2"
+                    />
+                    <p className="text-xs text-foreground-muted mt-1">
+                      Multiple fitment interviews can be created for this interview
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="jobDescription">Job Description *</Label>
+                    <Textarea
+                      id="jobDescription"
+                      placeholder="Paste the job description and role requirements here..."
+                      value={jobDescription}
+                      onChange={(e) => setJobDescription(e.target.value)}
+                      className="mt-2 min-h-32"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Or Upload Job Description File</Label>
+                    <div className="mt-2 border-2 border-dashed border-border rounded-lg p-4 text-center">
+                      <FileText className="w-8 h-8 text-brand-primary opacity-60 mx-auto mb-2" />
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.txt"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        id="jobDescFile"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => document.getElementById('jobDescFile')?.click()}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Choose File
+                      </Button>
+                      {jobDescriptionFile && (
+                        <p className="text-sm text-success font-medium mt-2">
+                          ✓ {jobDescriptionFile.name}
+                        </p>
+                      )}
                     </div>
                   </div>
 
-                  {/* Manual Selection */}
-                  <div className="border-t pt-4">
-                    <ManualCandidateSelection 
-                      interview={interview}
-                      selectedCandidates={selectedCandidates}
-                      onCandidateSelect={handleCandidateSelect}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="jobDescription">Job Description</Label>
-                  <Textarea
-                    id="jobDescription"
-                    placeholder="Paste the job description and role requirements here..."
-                    value={jobDescription}
-                    onChange={(e) => setJobDescription(e.target.value)}
-                    className="mt-2 min-h-32"
-                  />
-                </div>
-
-                <div>
-                  <Label>Or Upload Job Description File</Label>
-                  <div className="mt-2 border-2 border-dashed border-border rounded-lg p-4 text-center">
-                    <FileText className="w-8 h-8 text-brand-primary opacity-60 mx-auto mb-2" />
-                    <input
-                      type="file"
-                      accept=".pdf,.doc,.docx,.txt"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      id="jobDescFile"
-                    />
+                  <div className="flex justify-end gap-3">
                     <Button
                       variant="outline"
-                      onClick={() => document.getElementById('jobDescFile')?.click()}
+                      onClick={() => setIsCreateFitmentOpen(false)}
                     >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Choose File
+                      Cancel
                     </Button>
-                    {jobDescriptionFile && (
-                      <p className="text-sm text-success font-medium mt-2">
-                        ✓ {jobDescriptionFile.name}
-                      </p>
-                    )}
+                    <Button onClick={handleNextToCandidate}>
+                      Next: Select Candidates
+                    </Button>
                   </div>
                 </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="bg-accent/20 p-4 rounded-lg">
+                    <div className="text-sm font-medium mb-1">Interview: {fitmentInterviewName}</div>
+                    <div className="text-xs text-foreground-muted">
+                      Job description ready • {eligibleForShortlist.length} candidates eligible for auto-shortlist
+                    </div>
+                  </div>
 
-                <div className="flex justify-end gap-3">
-                  <Button variant="outline" onClick={() => setIsCreateFitmentOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleCreateFitmentInterview} className="bg-gradient-primary border-0">
-                    Create Fitment Interview
-                  </Button>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-base font-medium">Select Candidates</Label>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAutoShortlist}
+                        className="bg-gradient-primary text-primary-foreground border-0"
+                      >
+                        <UserCheck className="w-4 h-4 mr-2" />
+                        Auto-Shortlist Based on Transcript
+                      </Button>
+                    </div>
+                    
+                    <div className="text-sm text-foreground-muted bg-info/10 p-3 rounded-lg border border-info/20">
+                      <strong>Auto-shortlist:</strong> Automatically selects candidates with interview scores ≥ 75% based on their transcript analysis and performance metrics.
+                    </div>
+
+                    {/* Quick Selection */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Shortlisted Candidates (Score ≥ 75%)</Label>
+                        <span className="text-sm text-foreground-muted">{eligibleForShortlist.length} eligible</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="select-all"
+                            checked={selectedCandidates.length === eligibleForShortlist.length && eligibleForShortlist.length > 0}
+                            onCheckedChange={handleSelectAll}
+                          />
+                          <Label htmlFor="select-all" className="font-medium">
+                            Select All Shortlisted ({eligibleForShortlist.length})
+                          </Label>
+                        </div>
+                        {eligibleForShortlist.map((candidate) => (
+                          <div key={candidate.id} className="flex items-center space-x-2 pl-6">
+                            <Checkbox
+                              id={`candidate-${candidate.id}`}
+                              checked={selectedCandidates.includes(candidate.id)}
+                              onCheckedChange={(checked) => handleCandidateSelect(candidate.id, checked as boolean)}
+                            />
+                            <Label htmlFor={`candidate-${candidate.id}`} className="flex-1">
+                              {candidate.name} ({candidate.score}%)
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Manual Selection */}
+                    <div className="border-t pt-4">
+                      <ManualCandidateSelection 
+                        interview={interview}
+                        selectedCandidates={selectedCandidates}
+                        onCandidateSelect={handleCandidateSelect}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <Button
+                      variant="outline"
+                      onClick={() => setFitmentStep("jd")}
+                    >
+                      Back to Job Description
+                    </Button>
+                    <div className="flex gap-3">
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsCreateFitmentOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleCreateFitmentInterview}
+                        disabled={selectedCandidates.length === 0}
+                        className="bg-gradient-primary border-0"
+                      >
+                        Done - Create Fitment Interview
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </DialogContent>
           </Dialog>
         </div>
