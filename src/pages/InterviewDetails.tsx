@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, Clock, Calendar, Phone, Mail, MessageSquare, UserCheck, Upload, FileText, Target } from "lucide-react";
+import { ArrowLeft, Users, Clock, Calendar, Phone, Mail, MessageSquare, UserCheck, Upload, FileText, Target, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -130,7 +130,7 @@ function ManualCandidateSelection({
                     checked={selectedCandidates.includes(candidate.id)}
                     onCheckedChange={(checked) => onCandidateSelect(candidate.id, checked as boolean)}
                   />
-                  <div>
+                  <div className="flex-1">
                     <Label htmlFor={`manual-candidate-${candidate.id}`} className="font-medium">
                       {candidate.name}
                     </Label>
@@ -138,13 +138,28 @@ function ManualCandidateSelection({
                       {candidate.email} • {candidate.phone}
                     </div>
                     {candidate.score && (
-                      <div className="text-xs text-foreground-muted">
+                      <div className="text-xs font-medium text-brand-primary">
                         Score: {candidate.score}%
                       </div>
                     )}
                   </div>
                 </div>
-                <StatusBadge status={candidate.status} />
+                <div className="flex items-center gap-2">
+                  {candidate.score && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Handle quick view - could open a detailed view
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <StatusBadge status={candidate.status} />
+                </div>
               </div>
             ))}
           </div>

@@ -244,7 +244,11 @@ export default function ManageInterviews() {
             </TableHeader>
             <TableBody>
               {filteredInterviews.map((interview) => (
-                <TableRow key={interview.id}>
+                <TableRow 
+                  key={interview.id} 
+                  className="cursor-pointer hover:bg-accent/50 transition-colors"
+                  onClick={() => handleViewDetails(interview.id)}
+                >
                   <TableCell>
                     <div>
                       <div className="font-medium text-foreground">{interview.title}</div>
@@ -287,19 +291,16 @@ export default function ManageInterviews() {
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
+                        <Button 
+                          variant="ghost" 
+                          className="h-8 w-8 p-0"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-surface border-border">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem
-                          onClick={() => handleViewDetails(interview.id)}
-                          className="cursor-pointer"
-                        >
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Details
-                        </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleAction("edited", interview.id, interview.title)}
                           className="cursor-pointer"
