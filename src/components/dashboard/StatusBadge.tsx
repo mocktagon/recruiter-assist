@@ -48,6 +48,20 @@ const statusConfig = {
 export function StatusBadge({ status, className }: StatusBadgeProps) {
   const config = statusConfig[status];
   
+  // Safety check for undefined config
+  if (!config) {
+    console.warn(`Invalid status passed to StatusBadge: "${status}"`);
+    return (
+      <span className={cn(
+        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border",
+        "bg-muted text-foreground-muted border-border",
+        className
+      )}>
+        Unknown
+      </span>
+    );
+  }
+  
   return (
     <span className={cn(
       "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border",
