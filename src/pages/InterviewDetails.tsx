@@ -24,6 +24,135 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { Filter, X } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+
+// Manual candidate selection component
+function ManualCandidateSelection({ 
+  interview, 
+  selectedCandidates, 
+  onCandidateSelect 
+}: {
+  interview: any;
+  selectedCandidates: number[];
+  onCandidateSelect: (id: number, checked: boolean) => void;
+}) {
+  const [isManualOpen, setIsManualOpen] = useState(false);
+  const [candidateFilter, setCandidateFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+
+  const filteredCandidates = interview.candidates.filter((candidate: any) => {
+    const matchesName = candidate.name.toLowerCase().includes(candidateFilter.toLowerCase());
+    const matchesStatus = !statusFilter || candidate.status === statusFilter;
+    return matchesName && matchesStatus;
+  });
+
+  const uniqueStatuses = [...new Set(interview.candidates.map((c: any) => c.status))];
+
+  const handleSelectAllFiltered = (checked: boolean) => {
+    filteredCandidates.forEach((candidate: any) => {
+      onCandidateSelect(candidate.id, checked);
+    });
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium">Or Select Manually</Label>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsManualOpen(!isManualOpen)}
+        >
+          <Filter className="w-4 h-4 mr-2" />
+          {isManualOpen ? "Hide" : "Show"} All Candidates
+        </Button>
+      </div>
+
+      {isManualOpen && (
+        <div className="border rounded-lg p-4 space-y-4 bg-accent/20">
+          {/* Filters */}
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <Input
+                placeholder="Search candidates..."
+                value={candidateFilter}
+                onChange={(e) => setCandidateFilter(e.target.value)}
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Statuses</SelectItem>
+                {uniqueStatuses.map((status: string) => (
+                  <SelectItem key={status} value={status}>
+                    {(status as string).charAt(0).toUpperCase() + (status as string).slice(1).replace("-", " ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {(candidateFilter || statusFilter) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setCandidateFilter("");
+                  setStatusFilter("");
+                }}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+
+          {/* Select All Filtered */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="select-all-filtered"
+              checked={filteredCandidates.every((c: any) => selectedCandidates.includes(c.id))}
+              onCheckedChange={handleSelectAllFiltered}
+            />
+            <Label htmlFor="select-all-filtered" className="font-medium">
+              Select All Filtered ({filteredCandidates.length})
+            </Label>
+          </div>
+
+          {/* Candidate List */}
+          <div className="max-h-48 overflow-y-auto space-y-2">
+            {filteredCandidates.map((candidate: any) => (
+              <div key={candidate.id} className="flex items-center justify-between p-2 hover:bg-background rounded">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`manual-candidate-${candidate.id}`}
+                    checked={selectedCandidates.includes(candidate.id)}
+                    onCheckedChange={(checked) => onCandidateSelect(candidate.id, checked as boolean)}
+                  />
+                  <div>
+                    <Label htmlFor={`manual-candidate-${candidate.id}`} className="font-medium">
+                      {candidate.name}
+                    </Label>
+                    <div className="text-sm text-foreground-muted">
+                      {candidate.email} • {candidate.phone}
+                    </div>
+                    {candidate.score && (
+                      <div className="text-xs text-foreground-muted">
+                        Score: {candidate.score}%
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <StatusBadge status={candidate.status} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Mock interview data
 const interviewData = {
@@ -180,31 +309,48 @@ export default function InterviewDetails() {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-6">
-                <div>
-                  <Label className="text-base font-medium">Select Candidates (Score ≥ 75%)</Label>
-                  <div className="mt-3 space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="select-all"
-                        checked={selectedCandidates.length === eligibleForShortlist.length && eligibleForShortlist.length > 0}
-                        onCheckedChange={handleSelectAll}
-                      />
-                      <Label htmlFor="select-all" className="font-medium">
-                        Select All ({eligibleForShortlist.length} eligible)
-                      </Label>
+                <div className="space-y-4">
+                  <Label className="text-base font-medium">Select Candidates</Label>
+                  
+                  {/* Quick Selection */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">Shortlisted Candidates (Score ≥ 75%)</Label>
+                      <span className="text-sm text-foreground-muted">{eligibleForShortlist.length} eligible</span>
                     </div>
-                    {eligibleForShortlist.map((candidate) => (
-                      <div key={candidate.id} className="flex items-center space-x-2 pl-6">
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
                         <Checkbox
-                          id={`candidate-${candidate.id}`}
-                          checked={selectedCandidates.includes(candidate.id)}
-                          onCheckedChange={(checked) => handleCandidateSelect(candidate.id, checked as boolean)}
+                          id="select-all"
+                          checked={selectedCandidates.length === eligibleForShortlist.length && eligibleForShortlist.length > 0}
+                          onCheckedChange={handleSelectAll}
                         />
-                        <Label htmlFor={`candidate-${candidate.id}`} className="flex-1">
-                          {candidate.name} ({candidate.score}%)
+                        <Label htmlFor="select-all" className="font-medium">
+                          Select All Shortlisted ({eligibleForShortlist.length})
                         </Label>
                       </div>
-                    ))}
+                      {eligibleForShortlist.map((candidate) => (
+                        <div key={candidate.id} className="flex items-center space-x-2 pl-6">
+                          <Checkbox
+                            id={`candidate-${candidate.id}`}
+                            checked={selectedCandidates.includes(candidate.id)}
+                            onCheckedChange={(checked) => handleCandidateSelect(candidate.id, checked as boolean)}
+                          />
+                          <Label htmlFor={`candidate-${candidate.id}`} className="flex-1">
+                            {candidate.name} ({candidate.score}%)
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Manual Selection */}
+                  <div className="border-t pt-4">
+                    <ManualCandidateSelection 
+                      interview={interview}
+                      selectedCandidates={selectedCandidates}
+                      onCandidateSelect={handleCandidateSelect}
+                    />
                   </div>
                 </div>
 
