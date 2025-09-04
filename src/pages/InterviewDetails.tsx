@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, Clock, Calendar, Phone, Mail, MessageSquare, UserCheck, Upload, FileText, Target, Eye } from "lucide-react";
+import { ArrowLeft, Users, Clock, Calendar, Phone, Mail, MessageSquare, UserCheck, Upload, FileText, Target, Eye, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -203,6 +203,11 @@ export default function InterviewDetails() {
   const [isCreateFitmentOpen, setIsCreateFitmentOpen] = useState(false);
   const [jobDescription, setJobDescription] = useState("");
   const [jobDescriptionFile, setJobDescriptionFile] = useState<File | null>(null);
+  
+  // Main table filters
+  const [tableSearchQuery, setTableSearchQuery] = useState("");
+  const [tableStatusFilter, setTableStatusFilter] = useState("");
+  const [tableScoreFilter, setTableScoreFilter] = useState("");
 
   const interview = interviewData[parseInt(id || "1") as keyof typeof interviewData];
 
@@ -221,6 +226,32 @@ export default function InterviewDetails() {
   const completedCandidates = interview.candidates.filter(c => c.status === "completed");
   const eligibleForShortlist = completedCandidates.filter(c => c.score && c.score >= 75);
   const participationRate = Math.round((interview.candidates.filter(c => c.status !== "pending").length / interview.candidates.length) * 100);
+
+  // Filter candidates for main table
+  const filteredCandidatesForTable = interview.candidates.filter(candidate => {
+    const matchesSearch = 
+      candidate.name.toLowerCase().includes(tableSearchQuery.toLowerCase()) ||
+      candidate.email.toLowerCase().includes(tableSearchQuery.toLowerCase());
+    
+    const matchesStatus = tableStatusFilter === "all" || !tableStatusFilter || candidate.status === tableStatusFilter;
+    
+    const matchesScore = (() => {
+      if (!tableScoreFilter || tableScoreFilter === "all") return true;
+      if (!candidate.score) return tableScoreFilter === "no-score";
+      
+      switch (tableScoreFilter) {
+        case "high": return candidate.score >= 90;
+        case "good": return candidate.score >= 75 && candidate.score < 90;
+        case "fair": return candidate.score >= 60 && candidate.score < 75;
+        case "low": return candidate.score < 60;
+        default: return true;
+      }
+    })();
+    
+    return matchesSearch && matchesStatus && matchesScore;
+  });
+
+  const uniqueStatusesForTable = [...new Set(interview.candidates.map(c => c.status))];
 
   const handleCandidateSelect = (candidateId: number, checked: boolean) => {
     setSelectedCandidates(prev => 
@@ -534,12 +565,64 @@ export default function InterviewDetails() {
       {/* Candidates Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Candidate Results</CardTitle>
+          <CardTitle>Candidate Results ({filteredCandidatesForTable.length})</CardTitle>
           <CardDescription>
             Detailed view of all candidates and their interview performance
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Table Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 w-4 h-4 text-foreground-muted" />
+              <Input
+                placeholder="Search by name or email..."
+                value={tableSearchQuery}
+                onChange={(e) => setTableSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={tableStatusFilter} onValueChange={setTableStatusFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent className="bg-surface border-border z-50">
+                <SelectItem value="all">All Statuses</SelectItem>
+                {uniqueStatusesForTable.map((status: string) => (
+                  <SelectItem key={status} value={status}>
+                    {status.charAt(0).toUpperCase() + status.slice(1).replace("-", " ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={tableScoreFilter} onValueChange={setTableScoreFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="All scores" />
+              </SelectTrigger>
+              <SelectContent className="bg-surface border-border z-50">
+                <SelectItem value="all">All Scores</SelectItem>
+                <SelectItem value="high">Excellent (90%+)</SelectItem>
+                <SelectItem value="good">Good (75-89%)</SelectItem>
+                <SelectItem value="fair">Fair (60-74%)</SelectItem>
+                <SelectItem value="low">Low (&lt; 60%)</SelectItem>
+                <SelectItem value="no-score">No Score</SelectItem>
+              </SelectContent>
+            </Select>
+            {(tableSearchQuery || tableStatusFilter || tableScoreFilter) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setTableSearchQuery("");
+                  setTableStatusFilter("");
+                  setTableScoreFilter("");
+                }}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+
           <Table>
             <TableHeader>
               <TableRow>
@@ -552,7 +635,7 @@ export default function InterviewDetails() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {interview.candidates.map((candidate) => (
+              {filteredCandidatesForTable.map((candidate) => (
                 <TableRow key={candidate.id}>
                   <TableCell className="font-medium">
                     {candidate.name}
