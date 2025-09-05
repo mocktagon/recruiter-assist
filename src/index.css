@@ -6,21 +6,26 @@
 
 @layer base {
   :root {
-    /* Background & Surface */
-    --background: 210 20% 98%;
-    --surface: 0 0% 100%;
-    --surface-elevated: 210 40% 99%;
+    /* AI-Native Background & Surface */
+    --background: 220 25% 6%;
+    --surface: 220 20% 8%;
+    --surface-elevated: 220 15% 12%;
+    --surface-glass: 220 20% 15%;
+    --surface-neural: 260 15% 10%;
     
-    /* Text Colors */
-    --foreground: 210 24% 16%;
-    --foreground-muted: 210 12% 52%;
-    --foreground-subtle: 210 8% 72%;
+    /* AI-Native Text Colors */
+    --foreground: 210 40% 98%;
+    --foreground-muted: 210 20% 75%;
+    --foreground-subtle: 210 15% 60%;
+    --foreground-ai: 180 100% 85%;
 
-    /* Brand Colors - Professional Blue Palette */
-    --brand-primary: 210 100% 56%;
-    --brand-primary-dark: 210 100% 48%;
-    --brand-primary-light: 210 100% 94%;
-    --brand-secondary: 195 100% 50%;
+    /* AI-Native Brand Colors - Neural & Electric Palette */
+    --brand-primary: 180 100% 70%;
+    --brand-primary-dark: 180 100% 55%;
+    --brand-primary-light: 180 50% 85%;
+    --brand-secondary: 260 75% 65%;
+    --brand-neural: 280 60% 70%;
+    --brand-electric: 200 100% 60%;
     
     /* Semantic Colors */
     --success: 142 76% 36%;
@@ -71,16 +76,22 @@
     --status-cancelled: var(--error);
     --status-cancelled-light: var(--error-light);
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--brand-primary)) 0%, hsl(var(--brand-secondary)) 100%);
-    --gradient-subtle: linear-gradient(135deg, hsl(var(--surface)) 0%, hsl(var(--surface-elevated)) 100%);
+    /* AI-Native Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--brand-primary)) 0%, hsl(var(--brand-electric)) 100%);
+    --gradient-neural: linear-gradient(135deg, hsl(var(--brand-secondary)) 0%, hsl(var(--brand-neural)) 100%);
+    --gradient-glass: linear-gradient(135deg, hsl(var(--surface-glass) / 0.8) 0%, hsl(var(--surface-elevated) / 0.6) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--surface-elevated)) 100%);
     --gradient-success: linear-gradient(135deg, hsl(var(--success)) 0%, hsl(142 76% 44%) 100%);
+    --gradient-ai-glow: radial-gradient(circle at 50% 50%, hsl(var(--brand-primary) / 0.3) 0%, transparent 70%);
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(210 24% 16% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(210 24% 16% / 0.1), 0 2px 4px -1px hsl(210 24% 16% / 0.06);
-    --shadow-lg: 0 10px 15px -3px hsl(210 24% 16% / 0.1), 0 4px 6px -2px hsl(210 24% 16% / 0.05);
-    --shadow-brand: 0 10px 25px -5px hsl(var(--brand-primary) / 0.25);
+    /* AI-Native Shadows & Effects */
+    --shadow-sm: 0 1px 2px 0 hsl(var(--brand-primary) / 0.1);
+    --shadow-md: 0 4px 6px -1px hsl(var(--brand-primary) / 0.15), 0 2px 4px -1px hsl(var(--surface) / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(var(--brand-primary) / 0.2), 0 4px 6px -2px hsl(var(--surface) / 0.1);
+    --shadow-brand: 0 10px 25px -5px hsl(var(--brand-primary) / 0.4);
+    --shadow-neural: 0 8px 32px -8px hsl(var(--brand-secondary) / 0.3);
+    --glow-ai: 0 0 20px hsl(var(--brand-primary) / 0.5);
+    --glow-neural: 0 0 15px hsl(var(--brand-secondary) / 0.4);
 
     /* Animation Durations */
     --animation-fast: 0.15s;
@@ -97,42 +108,15 @@
     --sidebar-ring: hsl(var(--brand-primary));
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+  /* Light mode overrides (for AI-native design) */
+  .light {
+    --background: 210 30% 96%;
+    --surface: 0 0% 100%;
+    --surface-elevated: 210 40% 98%;
+    --foreground: 220 25% 15%;
+    --foreground-muted: 220 15% 45%;
+    --primary: hsl(var(--brand-primary));
+    --primary-foreground: hsl(var(--background));
   }
 }
 
@@ -143,5 +127,38 @@
 
   body {
     @apply bg-background text-foreground;
+    background-image: var(--gradient-ai-glow);
+    background-attachment: fixed;
+  }
+
+  /* AI-Native Glass Effects */
+  .glass {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--brand-primary) / 0.2);
+  }
+
+  .neural-glow {
+    box-shadow: var(--glow-neural);
+    border: 1px solid hsl(var(--brand-secondary) / 0.3);
+  }
+
+  .ai-glow {
+    box-shadow: var(--glow-ai);
+    border: 1px solid hsl(var(--brand-primary) / 0.3);
+  }
+
+  /* Smooth animations for AI interactions */
+  .animate-ai-pulse {
+    animation: ai-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes ai-pulse {
+    0%, 100% { 
+      box-shadow: 0 0 5px hsl(var(--brand-primary) / 0.3);
+    }
+    50% { 
+      box-shadow: 0 0 20px hsl(var(--brand-primary) / 0.6);
+    }
   }
 }
